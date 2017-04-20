@@ -7,7 +7,10 @@
 class ResultBar {
 
 public:
-    ResultBar(int numPixels, int pin) : pixels(numPixels, pin, NEO_GRB + NEO_KHZ800) { 
+    ResultBar(int numPixels, int pin) : 
+        pixels(numPixels, pin, NEO_GRB + NEO_KHZ800),
+        mark1(0),
+        mark2(0) { 
 #if defined (__AVR_ATtiny85__)
         if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
 #endif        
@@ -18,13 +21,13 @@ public:
     void test();
 
     // Sets the all-time record value. It will be displayed in red
-    void setMark1(int value);
+    void setMark1(uint8_t value);
 
     // Sets the session record value.
-    void setMark2(int value);
+    void setMark2(uint8_t value);
 
     // Set the value of the bar
-    void setBar(int value);
+    void setBar(uint8_t value);
 
     // Start new record animation
     void newRecordAnimation();
@@ -33,6 +36,7 @@ protected:
     void setAll(uint32_t color);
 
     Adafruit_NeoPixel pixels; 
+    int mark1, mark2;
 
 
 };

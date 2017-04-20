@@ -13,5 +13,12 @@ void setup() {
 
 void loop() {
     rb.test();
-    delay(5000);
+    delay(2000);
+
+    rb.setMark1(20);
+    rb.setMark2(50);
+    for(int i = 1; i < RESULTBAR_PIXELS; i++) {
+        rb.setBar(i);
+        delay(50);
+    }
 }
