@@ -72,6 +72,45 @@ void ResultBar::setBar(uint8_t value)
 
 void ResultBar::newRecordAnimation()
 {
+    uint8_t temp[5];
+    uint8_t n;
+    uint8_t r, g, b;
+    uint8_t bright = 50;
+    uint8_t sat = 250;
+    uint8_t center = pixels.numPixels() / 2;
+
+    pixels.clear();
+
+    // HLS to RGB Algorithm based on https://blog.adafruit.com/2012/03/14/constant-brightness-hsb-to-rgb-algorithm/
+    for(int index=0; index < 2000; index+=10) {
+      // Convert the hue (index) to RGB values
+      n = (index >> 8) % 3;
+      // %3 not needed if input is constrained, but may be useful for color cycling and/or if modulo constant is fast
+      uint8_t x = ((((index & 255) * sat) >> 8) * bright) >> 8;
+      // shifts may be added for added speed and precision at the end if fast 32 bit calculation is available
+      uint8_t s = ((256 - sat) * bright) >> 8;
+      temp[0] = temp[3] = s;
+      temp[1] = temp[4] = x + s;
+      temp[2] = bright - x    ;
+    
+      r = temp[n + 2];
+      g = temp[n + 1];
+      b = temp[n];
+
+      // Propagate the center color outwards
+      for(int8_t p = 0; p < center; p++) {
+        uint32_t c = pixels.getPixelColor(p+1);
+        pixels.setPixelColor(p, c);
+        pixels.setPixelColor(pixels.numPixels() - p - 1, c);
+      }
+
+      // Set the center color
+      pixels.setPixelColor(center, Adafruit_NeoPixel::Color(r, g, b));
+
+      // Show the result for a short while
+      pixels.show();
+      delay(15);
+    }
     
 }
 

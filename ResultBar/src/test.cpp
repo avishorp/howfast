@@ -21,4 +21,6 @@ void loop() {
         rb.setBar(i);
         delay(50);
     }
+
+    rb.newRecordAnimation();
 }
