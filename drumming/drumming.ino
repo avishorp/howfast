@@ -1,9 +1,7 @@
 // Basic demo for accelerometer readings from Adafruit LIS3DH
 
-#include <Wire.h>
-#include <SPI.h>
 #include <EEPROM.h>
-#include <Adafruit_LIS3DH.h>
+#include "LIS3DH_small.h"
 #include <Adafruit_Sensor.h>
 #include "ResultBar.h"
 
@@ -12,19 +10,21 @@
 
 #ifdef TRINKET_PRO
 #define RESULTBAR_PIN 4
+#define INTERNAL_LED 13
 #else
 #define RESULTBAR_PIN 1
+#define INTERNAL_LED 1
 #endif
 #define RESULTBAR_PIXELS  60
 
 
 #define WINDOW_SIZE 15
-#define THRESHOLD_LOW -1.1
+#define THRESHOLD_LOW (-17000)
 #define UPDATE_PERIOD 100
 #define HIT_WAIT 40
 #define MAX_RATE 800
 #define HIT_TIMEOUT 3000
-#define INTERNAL_LED 13
+
 #define LED_PULSE_LENGTH 100
 #define MIN_COUNT_TO_DISPLAY 7
 
@@ -33,7 +33,7 @@
 ResultBar rb(RESULTBAR_PIXELS, RESULTBAR_PIN);
 
 // I2C
-Adafruit_LIS3DH lis = Adafruit_LIS3DH();
+Adafruit_LIS3DH_small lis = Adafruit_LIS3DH_small();
 int day_record = 0;
 int all_time_record = 0;
 
@@ -43,11 +43,13 @@ int all_time_record = 0;
 #endif
 
 int read_all_time_record() {
+  /*
   byte b1, b2;
   byte checksum;
   b1 = EEPROM.read(0);
   b2 = EEPROM.read(1);
   checksum = EEPROM.read(2);
+
 
 #ifdef TRINKET_PRO
   Serial.print(b1); Serial.print(' ');
@@ -59,22 +61,25 @@ int read_all_time_record() {
     return 0;
   else
     return (b1 + (b2 << 8));
+*/
 }
 
 
 void write_all_time_record(int value) {
+  /*
   byte b1 = value & 0xff;
   byte b2 = (value >> 8) & 0xff;
   byte checksum = (b1 ^ b2);
   EEPROM.write(0, b1);
   EEPROM.write(1, b2);
   EEPROM.write(2, checksum);
+  */
 }
 
 void setup(void) {
 #ifdef TRINKET_PRO
   while (!Serial);     // will pause Zero, Leonardo, etc until serial console opens
-  Serial.begin(115200);
+  Serial.begin(9600);
 #endif
 
   
@@ -118,7 +123,7 @@ void loop() {
   byte count = 0;
   unsigned long next_update = millis() + UPDATE_PERIOD;
   unsigned long last_hit = 0;
-  unsigned long current;
+  int current;
   unsigned long previous;
   unsigned long led_pulse_time;
   int max_rate = 0;
@@ -134,7 +139,7 @@ void loop() {
     previous = current;
     current = lis.z;
 
-    if ((now-last_hit > HIT_WAIT) && (lis.z_g < THRESHOLD_LOW)) {
+    if ((now-last_hit > HIT_WAIT) && (lis.z < THRESHOLD_LOW)) {
     //if ((now-last_hit > HIT_WAIT) && (current > THRESHOLD_HIGH) && (previous < THRESHOLD_LOW)) {
       // A hit was detected!
       
@@ -171,7 +176,8 @@ void loop() {
         unsigned long delta_t = latest - first;
 
         // Calculate the rate in BPM x10
-        float rate = 1000.0*60*count / delta_t;
+//        float rate = 1000.0*60*count / delta_t;
+        int rate = (600*count / delta_t)*100;;
 
         // Calc the max ratte
         if ((count == WINDOW_SIZE) && (rate > max_rate))
@@ -212,6 +218,7 @@ void loop() {
 #endif      
       return;
     }
+    
 
 #ifdef PULSE_LED
     if ((now - led_pulse_time) > LED_PULSE_LENGTH) {
