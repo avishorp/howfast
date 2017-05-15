@@ -8,6 +8,7 @@
 #define COLOR_MARK1    (Adafruit_NeoPixel::Color(200, 0, 0))
 #define COLOR_MARK2    (Adafruit_NeoPixel::Color(200, 0, 100))
 #define COLOR_BAR      (Adafruit_NeoPixel::Color(0, 100, 0))
+#define COLOR_ERROR    (Adafruit_NeoPixel::Color(50, 0, 0))
 
 void ResultBar::test()
 {
@@ -112,6 +113,18 @@ void ResultBar::newRecordAnimation()
       delay(15);
     }
     
+}
+
+void ResultBar::errorAnimation()
+{
+	for(uint8_t i=0; i < 10; i++) {
+		setAll(COLOR_ERROR);
+		pixels.show();
+		delay(60);
+		setAll(0);
+		pixels.show();
+		delay(60);
+	}
 }
 
 void ResultBar::setAll(uint32_t color)

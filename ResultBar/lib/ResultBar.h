@@ -31,6 +31,9 @@ public:
 
     // Start new record animation
     void newRecordAnimation();
+	
+	// Error animation
+	void errorAnimation();
 
 protected:
     void setAll(uint32_t color);
