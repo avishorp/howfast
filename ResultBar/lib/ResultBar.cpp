@@ -39,6 +39,8 @@ void ResultBar::setMark1(uint8_t value)
         mark1 = value;
     else
         mark1 = 0;
+
+    render();
 }
 
 void ResultBar::setMark2(uint8_t value)
@@ -47,28 +49,14 @@ void ResultBar::setMark2(uint8_t value)
         mark2 = value;
     else
         mark2 = 0;
+
+    render();
 }
 
 void ResultBar::setBar(uint8_t value)
 {
-    // First, clear all
-    pixels.clear();
-
-    // Draw the bar
-    if ((value > 0) &&  (value <= pixels.numPixels())) {
-        for(uint8_t i = 1; i <= value; i++)
-            pixels.setPixelColor(i-1, COLOR_BAR);
-    }
-
-    // Draw marks
-    if (mark1 > 0)
-        pixels.setPixelColor(mark1-1, COLOR_MARK1);
-    if (mark2 > 0)
-        pixels.setPixelColor(mark2-1, COLOR_MARK2);
-
-    pixels.show();
-
-
+    barValue = value;
+    render();
 }
 
 void ResultBar::newRecordAnimation()
@@ -93,7 +81,7 @@ void ResultBar::newRecordAnimation()
       temp[0] = temp[3] = s;
       temp[1] = temp[4] = x + s;
       temp[2] = bright - x    ;
-    
+
       r = temp[n + 2];
       g = temp[n + 1];
       b = temp[n];
@@ -112,7 +100,7 @@ void ResultBar::newRecordAnimation()
       pixels.show();
       delay(15);
     }
-    
+
 }
 
 void ResultBar::errorAnimation()
@@ -132,4 +120,25 @@ void ResultBar::setAll(uint32_t color)
     for(uint8_t i=0; i < pixels.numPixels(); i++) {
         pixels.setPixelColor(i, color);
     }
+}
+
+void ResultBar::render()
+{
+    // First, clear all
+    pixels.clear();
+
+    // Draw the bar
+    if ((barValue > 0) &&  (barValue <= pixels.numPixels())) {
+        for(uint8_t i = 1; i <= barValue; i++)
+            pixels.setPixelColor(i-1, COLOR_BAR);
+    }
+
+    // Draw marks
+    if (mark1 > 0)
+        pixels.setPixelColor(mark1-1, COLOR_MARK1);
+    if (mark2 > 0)
+        pixels.setPixelColor(mark2-1, COLOR_MARK2);
+
+    pixels.show();
+
 }

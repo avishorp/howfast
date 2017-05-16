@@ -1,5 +1,9 @@
 
+#include <Arduino.h>
 #include "../../ResultBar/lib/ResultBar.h"
+#include "../../record/lib/record.h"
+
+
 
 #define BUTTONS
 
@@ -45,6 +49,8 @@ void setup() {
  pinMode(BUTTON1, INPUT_PULLUP);
  pinMode(BUTTON2, INPUT_PULLUP);
  rb.test();
+
+ all_time_record = read_record();
 }
 
 
@@ -55,7 +61,12 @@ void loop() {
   byte first_button;
   byte second_button;
 
- 
+  if (day_record > 0)
+    rb.setMark1(TIME_TO_PIXELS(day_record));
+  if (all_time_record > 0)
+    rb.setMark2(TIME_TO_PIXELS(all_time_record));
+
+
   // Wait for the first button press
   while(1) {
     // Turn off bar display after predefined amount of time
@@ -94,41 +105,40 @@ void loop() {
       return;
 #endif
 
- 
+
   // Wait until the second button is pressed
-  twait = millis();  
+  twait = millis();
   while(digitalRead(second_button) == DISENGAGED)
     if ((millis() - twait) > TIMEOUT)
       return;
 
   t2 = millis();
-/*
-  while(1) {
-    rb.setBar(10);
-    delay(200);
-    rb.setBar(20);
-    delay(200);
-  }
-*/
+
   unsigned long delta = t2 - t1;
-  if (delta > ERROR_TIME) 
+  if (delta > ERROR_TIME)
     rb.errorAnimation();
   else {
     rb.setBar(TIME_TO_PIXELS(delta));
     delay(1200);
-    if ((day_record == 0) || (delta < day_record)) {
+    if ((all_time_record == 0) || (delta < all_time_record)) {
+      // New all-time record
+      all_time_record = delta;
+      day_record = delta;
+      write_record(delta);
+      rb.newRecordAnimation();
+    }
+    else if ((day_record == 0) || (delta < day_record)) {
+      // New day record
       day_record = delta;
       rb.newRecordAnimation();
-      rb.setMark1(TIME_TO_PIXELS(day_record));
     }
 
     rb.setBar(TIME_TO_PIXELS(delta));
 #ifdef BUTTONS
     // Wait until both buttons are depressed
     while((digitalRead(BUTTON1) == ENGAGED) || (digitalRead(BUTTON2) == ENGAGED));
-#endif    
+#endif
     tdisplay = millis();
   }
 
 }
-

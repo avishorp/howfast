@@ -7,13 +7,13 @@
 class ResultBar {
 
 public:
-    ResultBar(int numPixels, int pin) : 
+    ResultBar(int numPixels, int pin) :
         pixels(numPixels, pin, NEO_GRB + NEO_KHZ800),
         mark1(0),
-        mark2(0) { 
+        mark2(0) {
 #if defined (__AVR_ATtiny85__)
         if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
-#endif        
+#endif
         pixels.begin();
     }
 
@@ -31,15 +31,17 @@ public:
 
     // Start new record animation
     void newRecordAnimation();
-	
+
 	// Error animation
 	void errorAnimation();
 
 protected:
     void setAll(uint32_t color);
+    void render();
 
-    Adafruit_NeoPixel pixels; 
+    Adafruit_NeoPixel pixels;
     int mark1, mark2;
+    int barValue;
 
 
 };
