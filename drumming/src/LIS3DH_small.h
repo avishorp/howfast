@@ -24,10 +24,7 @@
  #include "WProgram.h"
 #endif
 */
-#include <Wire.h>
-#ifndef __AVR_ATtiny85__
-  #include <SPI.h>
-#endif
+#include <TinyWireM.h>
 #include <Adafruit_Sensor.h>
 
 /*=========================================================================

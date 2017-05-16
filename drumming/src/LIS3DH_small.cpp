@@ -23,7 +23,7 @@
  #include "WProgram.h"
 #endif
 
-#include <Wire.h>
+#include <TinyWireM.h>
 #include "LIS3DH_small.h"
 
 
@@ -59,7 +59,7 @@ bool Adafruit_LIS3DH_small::begin(uint8_t i2caddr) {
 
   if (_cs == -1) {
     // i2c
-    Wire.begin();
+    TinyWireM.begin();
   } else {
     digitalWrite(_cs, HIGH);
     pinMode(_cs, OUTPUT);
@@ -128,15 +128,15 @@ void Adafruit_LIS3DH_small::read(void) {
 
   if (_cs == -1) {
     // i2c
-    Wire.beginTransmission(_i2caddr);
-    Wire.write(LIS3DH_REG_OUT_X_L | 0x80); // 0x80 for autoincrement
-    Wire.endTransmission();
+    TinyWireM.beginTransmission(_i2caddr);
+    TinyWireM.write(LIS3DH_REG_OUT_X_L | 0x80); // 0x80 for autoincrement
+    TinyWireM.endTransmission();
 
-    Wire.requestFrom(_i2caddr, 6);
-    x = Wire.read(); x |= ((uint16_t)Wire.read()) << 8;
-    y = Wire.read(); y |= ((uint16_t)Wire.read()) << 8;
-    z = Wire.read(); z |= ((uint16_t)Wire.read()) << 8;
-  } 
+    TinyWireM.requestFrom(_i2caddr, 6);
+    x = TinyWireM.read(); x |= ((uint16_t)TinyWireM.read()) << 8;
+    y = TinyWireM.read(); y |= ((uint16_t)TinyWireM.read()) << 8;
+    z = TinyWireM.read(); z |= ((uint16_t)TinyWireM.read()) << 8;
+  }
   #ifndef __AVR_ATtiny85__
   else {
     if (_sck == -1)
@@ -180,12 +180,12 @@ int16_t Adafruit_LIS3DH_small::readADC(uint8_t adc) {
 
   if (_cs == -1) {
     // i2c
-    Wire.beginTransmission(_i2caddr);
-    Wire.write(reg | 0x80);   // 0x80 for autoincrement
-    Wire.endTransmission();
-    Wire.requestFrom(_i2caddr, 2);
-    value = Wire.read();  value |= ((uint16_t)Wire.read()) << 8;
-  } 
+    TinyWireM.beginTransmission(_i2caddr);
+    TinyWireM.write(reg | 0x80);   // 0x80 for autoincrement
+    TinyWireM.endTransmission();
+    TinyWireM.requestFrom(_i2caddr, 2);
+    value = TinyWireM.read();  value |= ((uint16_t)TinyWireM.read()) << 8;
+  }
   #ifndef __AVR_ATtiny85__
   else {
     if (_sck == -1)
@@ -356,11 +356,11 @@ uint8_t Adafruit_LIS3DH_small::spixfer(uint8_t x) {
 /**************************************************************************/
 void Adafruit_LIS3DH_small::writeRegister8(uint8_t reg, uint8_t value) {
   if (_cs == -1) {
-    Wire.beginTransmission((uint8_t)_i2caddr);
-    Wire.write((uint8_t)reg);
-    Wire.write((uint8_t)value);
-    Wire.endTransmission();
-  } 
+    TinyWireM.beginTransmission((uint8_t)_i2caddr);
+    TinyWireM.write((uint8_t)reg);
+    TinyWireM.write((uint8_t)value);
+    TinyWireM.endTransmission();
+  }
   #ifndef __AVR_ATtiny85__
   else {
     if (_sck == -1)
@@ -384,13 +384,13 @@ uint8_t Adafruit_LIS3DH_small::readRegister8(uint8_t reg) {
   uint8_t value;
 
   if (_cs == -1) {
-    Wire.beginTransmission(_i2caddr);
-    Wire.write((uint8_t)reg);
-    Wire.endTransmission();
+    TinyWireM.beginTransmission(_i2caddr);
+    TinyWireM.write((uint8_t)reg);
+    TinyWireM.endTransmission();
 
-    Wire.requestFrom(_i2caddr, 1);
-    value = Wire.read();
-  }  
+    TinyWireM.requestFrom(_i2caddr, 1);
+    value = TinyWireM.read();
+  }
   #ifndef __AVR_ATtiny85__
   else {
     if (_sck == -1)
