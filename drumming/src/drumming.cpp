@@ -1,9 +1,10 @@
 // Basic demo for accelerometer readings from Adafruit LIS3DH
 
+#include <Arduino.h>
 #include <EEPROM.h>
 #include "LIS3DH_small.h"
 #include <Adafruit_Sensor.h>
-#include "ResultBar.h"
+#include "../../ResultBar/lib/ResultBar.h"
 
 //#define TRINKET_PRO
 //#define PULSE_LED
@@ -82,21 +83,21 @@ void setup(void) {
   Serial.begin(9600);
 #endif
 
-  
+
   if (! lis.begin(0x18)) {   // change this to 0x19 for alternative i2c address
-#ifdef TRINKET_PRO  
+#ifdef TRINKET_PRO
     Serial.println("Couldnt start");
-#endif    
+#endif
     while (1);
   }
   //Serial.println("LIS3DH found!");
-  
+
   lis.setRange(LIS3DH_RANGE_2_G);   // 2, 4, 8 or 16 G!
 
-#ifdef TRINKET_PRO  
-  Serial.print("Range = "); Serial.print(2 << lis.getRange());  
+#ifdef TRINKET_PRO
+  Serial.print("Range = "); Serial.print(2 << lis.getRange());
   Serial.println("G");
-#endif  
+#endif
   rb.test();
 
 #ifdef PULSE_LED
@@ -142,7 +143,7 @@ void loop() {
     if ((now-last_hit > HIT_WAIT) && (lis.z < THRESHOLD_LOW)) {
     //if ((now-last_hit > HIT_WAIT) && (current > THRESHOLD_HIGH) && (previous < THRESHOLD_LOW)) {
       // A hit was detected!
-      
+
       last_hit = now;
 
       // Push the new measurement into the head of the cyclic buffer
@@ -150,7 +151,7 @@ void loop() {
 
       // Keep track of the number of the samples in the buffer
       if (count < WINDOW_SIZE) {
-        count++;  
+        count++;
       }
 
       // Increment the head
@@ -158,11 +159,11 @@ void loop() {
       //Serial.print("count "); Serial.print(count); Serial.print(' '); Serial.println(now);
 
       // Flash the internal led
-#ifdef PULSE_LED     
+#ifdef PULSE_LED
       digitalWrite(INTERNAL_LED, HIGH);
       led_pulse_time = 0;
 #endif
-      
+
     }
 
     if (millis() > next_update) {
@@ -210,15 +211,15 @@ void loop() {
           // New day record!
           day_record = max_rate;
           rb.newRecordAnimation();
-          rb.setMark1(RESULTBAR_PIXELS*day_record/800);                 
+          rb.setMark1(RESULTBAR_PIXELS*day_record/800);
         }
       }
-#ifdef PULSE_LED     
+#ifdef PULSE_LED
       digitalWrite(INTERNAL_LED, 0);
-#endif      
+#endif
       return;
     }
-    
+
 
 #ifdef PULSE_LED
     if ((now - led_pulse_time) > LED_PULSE_LENGTH) {
@@ -228,6 +229,3 @@ void loop() {
 #endif
   }
 }
-
-
-
