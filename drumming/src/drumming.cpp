@@ -1,10 +1,10 @@
 // Basic demo for accelerometer readings from Adafruit LIS3DH
 
 #include <Arduino.h>
-#include <EEPROM.h>
 #include "LIS3DH_small.h"
 #include <Adafruit_Sensor.h>
 #include "../../ResultBar/lib/ResultBar.h"
+#include "../../record/lib/record.h"
 
 //#define TRINKET_PRO
 //#define PULSE_LED
@@ -43,40 +43,6 @@ int all_time_record = 0;
    #define Serial SerialUSB
 #endif
 
-int read_all_time_record() {
-  /*
-  byte b1, b2;
-  byte checksum;
-  b1 = EEPROM.read(0);
-  b2 = EEPROM.read(1);
-  checksum = EEPROM.read(2);
-
-
-#ifdef TRINKET_PRO
-  Serial.print(b1); Serial.print(' ');
-  Serial.print(b2); Serial.print(' ');
-  Serial.print(checksum); Serial.println(' ');
-#endif
-
-  if (checksum != (b1 ^ b2))
-    return 0;
-  else
-    return (b1 + (b2 << 8));
-*/
-}
-
-
-void write_all_time_record(int value) {
-  /*
-  byte b1 = value & 0xff;
-  byte b2 = (value >> 8) & 0xff;
-  byte checksum = (b1 ^ b2);
-  EEPROM.write(0, b1);
-  EEPROM.write(1, b2);
-  EEPROM.write(2, checksum);
-  */
-}
-
 void setup(void) {
 #ifdef TRINKET_PRO
   while (!Serial);     // will pause Zero, Leonardo, etc until serial console opens
@@ -104,7 +70,7 @@ void setup(void) {
   pinMode(INTERNAL_LED, OUTPUT);
 #endif
   // Fetch all-time record from the EEPROM
-  all_time_record = read_all_time_record();
+  all_time_record = read_record();
   if (all_time_record > 0) {
     rb.setMark2(RATE_TO_PIXELS(all_time_record));
 
@@ -202,7 +168,7 @@ void loop() {
           // New all time record!
           all_time_record = max_rate;
           day_record = max_rate;
-          write_all_time_record(max_rate);
+          write_record(max_rate);
           rb.newRecordAnimation();
           rb.setMark1(RATE_TO_PIXELS(max_rate));
           rb.setMark2(RATE_TO_PIXELS(max_rate));
