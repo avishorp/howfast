@@ -1,4 +1,5 @@
 
+
 #include <Arduino.h>
 #include "../../ResultBar/lib/ResultBar.h"
 #include "../../record/lib/record.h"
@@ -8,7 +9,7 @@
 #define BUTTONS
 
 #define RESULTBAR_PIN     1
-#define RESULTBAR_PIXELS  60
+#define RESULTBAR_PIXELS  57
 #define BUTTON1           0
 #define BUTTON2           2
 
@@ -16,15 +17,13 @@
 #define DISPLAY_TIME      2500
 
 #ifdef BUTTONS
-#define DEBOUNCE_DELAY    2
-#define MIN_TIME          5
-#define MAX_TIME          200
-#define ERROR_TIME        200
+#define MIN_TIME          15
+#define MAX_TIME          1000
+#define ERROR_TIME        2000
 #else
-#define DEBOUNCE_DELAY    2
-#define MIN_TIME          10
-#define MAX_TIME          100
-#define ERROR_TIME        500
+#define MIN_TIME          5
+#define MAX_TIME          1000
+#define ERROR_TIME        5000
 #endif
 
 #define A (-1.0*RESULTBAR_PIXELS/(MAX_TIME - MIN_TIME))
@@ -92,33 +91,27 @@ void loop() {
   }
 
   // Take the first time
-  t1 = millis();
+  t1 = micros();
 
-#ifdef BUTTONS
-  // Small delay (debouncing)
-  delay(DEBOUNCE_DELAY);
 
-  // Wait until the first button is released
+  // Wait until the second button is pressed and the first released
   twait = millis();
-  while(digitalRead(first_button) == ENGAGED)
-    if ((millis() - twait) > TIMEOUT)
-      return;
-#endif
-
-
-  // Wait until the second button is pressed
-  twait = millis();
-  while(digitalRead(second_button) == DISENGAGED)
+  while((digitalRead(second_button) == DISENGAGED) || (digitalRead(first_button) == ENGAGED))
     if ((millis() - twait) > TIMEOUT)
       return;
 
-  t2 = millis();
+  t2 = micros();
 
-  unsigned long delta = t2 - t1;
+  unsigned long delta = (t2 - t1)/100;
+  if (delta < MIN_TIME) delta = MIN_TIME;
+  if (delta > MAX_TIME) delta = MAX_TIME;
+  byte bar = TIME_TO_PIXELS(delta);
+  if (bar < 0) bar = 0;
+
   if (delta > ERROR_TIME)
     rb.errorAnimation();
   else {
-    rb.setBar(TIME_TO_PIXELS(delta));
+    rb.setBar(bar);
     delay(1200);
     if ((all_time_record == 0) || (delta < all_time_record)) {
       // New all-time record
@@ -133,7 +126,7 @@ void loop() {
       rb.newRecordAnimation();
     }
 
-    rb.setBar(TIME_TO_PIXELS(delta));
+    rb.setBar(bar);
 #ifdef BUTTONS
     // Wait until both buttons are depressed
     while((digitalRead(BUTTON1) == ENGAGED) || (digitalRead(BUTTON2) == ENGAGED));
