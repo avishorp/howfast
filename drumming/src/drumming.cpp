@@ -19,9 +19,9 @@
 #define RESULTBAR_PIXELS  60
 
 
-#define WINDOW_SIZE 15
+#define WINDOW_SIZE 16
 #define THRESHOLD_LOW (-17000)
-#define UPDATE_PERIOD 100
+#define UPDATE_PERIOD 400
 #define HIT_WAIT 40
 #define MAX_RATE 800
 #define HIT_TIMEOUT 3000
@@ -93,7 +93,9 @@ void loop() {
   int current;
   unsigned long previous;
   unsigned long led_pulse_time;
-  int max_rate = 0;
+  uint16_t max_rate = 0;
+  uint16_t display_max_rate = 0;
+  uint16_t bar;
 
   // Clear the bar display
   rb.setBar(0);
@@ -103,6 +105,7 @@ void loop() {
     // Measure acceleration, store the data
     lis.read();
     unsigned long now = millis();
+    unsigned long last_update = now;
     previous = current;
     current = lis.z;
 
@@ -145,6 +148,7 @@ void loop() {
         // Calculate the rate in BPM x10
 //        float rate = 1000.0*60*count / delta_t;
         int rate = (600*count / delta_t)*100;;
+        bar = RATE_TO_PIXELS(rate);
 
         // Calc the max ratte
         if ((count == WINDOW_SIZE) && (rate > max_rate))
@@ -156,7 +160,7 @@ void loop() {
         //Serial.println(rate);
         //Serial.println((int)(RESULTBAR_PIXELS*rate/800));
 
-        rb.setBar(RESULTBAR_PIXELS*rate/800);
+        rb.setBar(bar);
       }
     }
 
@@ -170,14 +174,15 @@ void loop() {
           day_record = max_rate;
           write_record(max_rate);
           rb.newRecordAnimation();
-          rb.setMark1(RATE_TO_PIXELS(max_rate));
-          rb.setMark2(RATE_TO_PIXELS(max_rate));
+
+          rb.setMark1(bar);
+          rb.setMark2(bar);
         }
         else if (max_rate > day_record) {
           // New day record!
           day_record = max_rate;
           rb.newRecordAnimation();
-          rb.setMark1(RESULTBAR_PIXELS*day_record/800);
+          rb.setMark1(bar);
         }
       }
 #ifdef PULSE_LED

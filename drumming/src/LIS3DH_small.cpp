@@ -56,43 +56,19 @@ Adafruit_LIS3DH_small::Adafruit_LIS3DH_small(int8_t cspin, int8_t mosipin, int8_
 bool Adafruit_LIS3DH_small::begin(uint8_t i2caddr) {
   _i2caddr = i2caddr;
 
+  TinyWireM.begin();
 
-  if (_cs == -1) {
-    // i2c
-    TinyWireM.begin();
-  } else {
-    digitalWrite(_cs, HIGH);
-    pinMode(_cs, OUTPUT);
 
-#ifndef __AVR_ATtiny85__
-    if (_sck == -1) {
-      // hardware SPI
-      SPI.begin();
-    } else {
-      // software SPI
-      pinMode(_sck, OUTPUT);
-      pinMode(_mosi, OUTPUT);
-      pinMode(_miso, INPUT);
-    }
-#endif
-  }
 
-  /*
-  for (uint8_t i=0; i<0x30; i++) {
-    Serial.print("$");
-    Serial.print(i, HEX); Serial.print(" = 0x");
-    Serial.println(readRegister8(i), HEX);
-  }
-  */
 
   /* Check connection */
-  uint8_t deviceid = readRegister8(LIS3DH_REG_WHOAMI);
-  if (deviceid != 0x33)
-  {
-    /* No LIS3DH detected ... return false */
-    //Serial.println(deviceid, HEX);
-    return false;
-  }
+//  uint8_t deviceid = readRegister8(LIS3DH_REG_WHOAMI);
+//  if (deviceid != 0x33)
+//  {
+//    /* No LIS3DH detected ... return false */
+//    //Serial.println(deviceid, HEX);
+//    return false;
+//  }
 
   // enable all axes, normal mode
   writeRegister8(LIS3DH_REG_CTRL1, 0x07);
@@ -171,37 +147,7 @@ void Adafruit_LIS3DH_small::read(void) {
 /**************************************************************************/
 
 int16_t Adafruit_LIS3DH_small::readADC(uint8_t adc) {
-  if ((adc < 1) || (adc > 3)) return 0;
-  uint16_t value;
-
-  adc--;
-
-  uint8_t reg = LIS3DH_REG_OUTADC1_L + adc*2;
-
-  if (_cs == -1) {
-    // i2c
-    TinyWireM.beginTransmission(_i2caddr);
-    TinyWireM.write(reg | 0x80);   // 0x80 for autoincrement
-    TinyWireM.endTransmission();
-    TinyWireM.requestFrom(_i2caddr, 2);
-    value = TinyWireM.read();  value |= ((uint16_t)TinyWireM.read()) << 8;
-  }
-  #ifndef __AVR_ATtiny85__
-  else {
-    if (_sck == -1)
-      SPI.beginTransaction(SPISettings(500000, MSBFIRST, SPI_MODE0));
-    digitalWrite(_cs, LOW);
-    spixfer(reg | 0x80 | 0x40); // read multiple, bit 7&6 high
-
-    value = spixfer(); value |= ((uint16_t)spixfer()) << 8;
-
-    digitalWrite(_cs, HIGH);
-    if (_sck == -1)
-      SPI.endTransaction();              // release the SPI bus
-  }
-  #endif
-
-  return value;
+  return 0;
 }
 
 
@@ -212,33 +158,11 @@ int16_t Adafruit_LIS3DH_small::readADC(uint8_t adc) {
 /**************************************************************************/
 
 void Adafruit_LIS3DH_small::setClick(uint8_t c, uint8_t clickthresh, uint8_t timelimit, uint8_t timelatency, uint8_t timewindow) {
-  if (!c) {
-    //disable int
-    uint8_t r = readRegister8(LIS3DH_REG_CTRL3);
-    r &= ~(0x80); // turn off I1_CLICK
-    writeRegister8(LIS3DH_REG_CTRL3, r);
-    writeRegister8(LIS3DH_REG_CLICKCFG, 0);
-    return;
-  }
-  // else...
 
-  writeRegister8(LIS3DH_REG_CTRL3, 0x80); // turn on int1 click
-  writeRegister8(LIS3DH_REG_CTRL5, 0x08); // latch interrupt on int1
-
-  if (c == 1)
-    writeRegister8(LIS3DH_REG_CLICKCFG, 0x15); // turn on all axes & singletap
-  if (c == 2)
-    writeRegister8(LIS3DH_REG_CLICKCFG, 0x2A); // turn on all axes & doubletap
-
-
-  writeRegister8(LIS3DH_REG_CLICKTHS, clickthresh); // arbitrary
-  writeRegister8(LIS3DH_REG_TIMELIMIT, timelimit); // arbitrary
-  writeRegister8(LIS3DH_REG_TIMELATENCY, timelatency); // arbitrary
-  writeRegister8(LIS3DH_REG_TIMEWINDOW, timewindow); // arbitrary
 }
 
 uint8_t Adafruit_LIS3DH_small::getClick(void) {
-  return readRegister8(LIS3DH_REG_CLICKSRC);
+return 0;
 }
 
 
