@@ -19,9 +19,9 @@
 #define RESULTBAR_PIXELS  60
 
 
-#define WINDOW_SIZE 16
+#define WINDOW_SIZE 4
 #define THRESHOLD_LOW (-17000)
-#define UPDATE_PERIOD 400
+#define UPDATE_PERIOD 500
 #define HIT_WAIT 40
 #define MAX_RATE 800
 #define HIT_TIMEOUT 3000
@@ -29,7 +29,7 @@
 #define LED_PULSE_LENGTH 100
 #define MIN_COUNT_TO_DISPLAY 7
 
-#define RATE_TO_PIXELS(r) ((unsigned int)RESULTBAR_PIXELS*(unsigned int)r/MAX_RATE)
+#define RATE_TO_PIXELS(r) (r*2)
 
 ResultBar rb(RESULTBAR_PIXELS, RESULTBAR_PIN);
 
@@ -54,6 +54,7 @@ void setup(void) {
 #ifdef TRINKET_PRO
     Serial.println("Couldnt start");
 #endif
+    rb.errorAnimation();
     while (1);
   }
   //Serial.println("LIS3DH found!");
@@ -70,18 +71,17 @@ void setup(void) {
   pinMode(INTERNAL_LED, OUTPUT);
 #endif
   // Fetch all-time record from the EEPROM
-  all_time_record = read_record();
-  if (all_time_record > 0) {
-    rb.setMark2(RATE_TO_PIXELS(all_time_record));
+//  all_time_record = read_record();
+//  if (all_time_record > 0) {
+//    rb.setMark2(RATE_TO_PIXELS(all_time_record));
 
 #ifdef TRINKET_PRO
     Serial.print("all time record ");
     Serial.println(all_time_record);
     Serial.println(RATE_TO_PIXELS(all_time_record));
 #endif
-  }
-
 }
+
 
 
 void loop() {
@@ -99,7 +99,56 @@ void loop() {
 
   // Clear the bar display
   rb.setBar(0);
+  next_update = millis() + UPDATE_PERIOD;
 
+  // Clear hit count
+  for(byte i = 0; i < WINDOW_SIZE; i++)
+    hits[i] = 0;
+
+  while(1) {
+    lis.read();
+    unsigned long now = millis();
+
+    if ((now-last_hit > HIT_WAIT) && (lis.z < THRESHOLD_LOW)) {
+      // A hit was detected!
+      last_hit = now;
+
+      // Push the new measurement into the head of the cyclic buffer
+      hits[head]++;
+    }
+
+    if (now > next_update) {
+      // Schedule next update
+      next_update = now + UPDATE_PERIOD;
+
+      // If there were no hits in the last update period, wer'e done
+      // with this cycle
+      if (hits[head] == 0)
+        break;
+
+      // Calculate the druming rate
+      byte head_1 = (head == 0)? (WINDOW_SIZE-1) : (head - 1) ;
+      uint16_t rate = (hits[head] + hits[head_1])*1000/UPDATE_PERIOD/2;
+
+      if (rate > max_rate)
+        max_rate = rate;
+
+      byte pixels = RATE_TO_PIXELS(rate);
+      rb.setBar(pixels);
+
+      head = (head + 1) % WINDOW_SIZE;
+      hits[head] = 0;
+    }
+  }
+
+  // Check for record
+  if (max_rate > day_record) {
+    day_record = max_rate;
+    rb.newRecordAnimation();
+    rb.setMark1(RATE_TO_PIXELS(day_record));
+  }
+
+/*
 
   while(1) {
     // Measure acceleration, store the data
@@ -199,4 +248,5 @@ void loop() {
     }
 #endif
   }
+*/
 }

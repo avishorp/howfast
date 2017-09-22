@@ -62,13 +62,13 @@ bool Adafruit_LIS3DH_small::begin(uint8_t i2caddr) {
 
 
   /* Check connection */
-//  uint8_t deviceid = readRegister8(LIS3DH_REG_WHOAMI);
-//  if (deviceid != 0x33)
-//  {
+  uint8_t deviceid = readRegister8(LIS3DH_REG_WHOAMI);
+  if (deviceid != 0x33)
+  {
 //    /* No LIS3DH detected ... return false */
 //    //Serial.println(deviceid, HEX);
-//    return false;
-//  }
+    return false;
+  }
 
   // enable all axes, normal mode
   writeRegister8(LIS3DH_REG_CTRL1, 0x07);
