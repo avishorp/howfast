@@ -5,6 +5,23 @@
 #include "../../record/lib/record.h"
 
 
+//
+// Number of pixels as function of time:
+//
+//        |
+// #PIXELS| ******
+//        |       *******
+//      YB|              **
+//        |                **
+//        |                  **
+//        |                    **
+//        |                      **
+//        +----------------------------------------
+//          MIN_        XB        MAX_
+//          TIME                  TIME
+
+
+
 
 #define BUTTONS
 
@@ -13,22 +30,21 @@
 #define BUTTON1           0
 #define BUTTON2           2
 
-#define TIMEOUT           1200
+#define TIMEOUT           5000
 #define DISPLAY_TIME      2500
 
 #ifdef BUTTONS
 #define MIN_TIME          15
-#define MAX_TIME          1000
-#define ERROR_TIME        2000
+#define MAX_TIME          2000
+#define YB                (RESULTBAR_PIXELS*7/10)
+#define XB                ((MAX_TIME-MIN_TIME)*6/10)
+#define ERROR_TIME        4000
 #else
 #define MIN_TIME          5
 #define MAX_TIME          1000
 #define ERROR_TIME        5000
 #endif
 
-#define A (-1.0*RESULTBAR_PIXELS/(MAX_TIME - MIN_TIME))
-#define B ((-A)*MAX_TIME)
-#define TIME_TO_PIXELS(t) (A*t + B)
 
 #ifdef BUTTONS
 #define ENGAGED    0
@@ -43,6 +59,21 @@ int day_record = 0;
 int all_time_record = 0;
 unsigned long tdisplay = 0;
 
+#define SLOPE_A ((int32_t)((int32_t)(YB - RESULTBAR_PIXELS)*1024/((int32_t)XB-(int32_t)MIN_TIME)))
+#define SLOPE_B ((int32_t)(-(int32_t)YB*1024/((int32_t)MAX_TIME - (int32_t)XB)))
+uint16_t time_to_pixels(uint16_t t)
+{
+  uint16_t x = t;
+  if (t < MIN_TIME)
+    x = MIN_TIME;
+  if (t > MAX_TIME)
+    x = MAX_TIME;
+
+  if (x < XB)
+    return ((x-MIN_TIME)*SLOPE_A/1024 + RESULTBAR_PIXELS);
+  else
+    return (x - XB)*SLOPE_B/1024 + YB;
+}
 
 void setup() {
  pinMode(BUTTON1, INPUT_PULLUP);
@@ -61,9 +92,9 @@ void loop() {
   byte second_button;
 
   if (day_record > 0)
-    rb.setMark1(TIME_TO_PIXELS(day_record));
+    rb.setMark1(time_to_pixels(day_record));
   if (all_time_record > 0)
-    rb.setMark2(TIME_TO_PIXELS(all_time_record));
+    rb.setMark2(time_to_pixels(all_time_record));
 
 
   // Wait for the first button press
@@ -103,9 +134,7 @@ void loop() {
   t2 = micros();
 
   unsigned long delta = (t2 - t1)/100;
-  if (delta < MIN_TIME) delta = MIN_TIME;
-  if (delta > MAX_TIME) delta = MAX_TIME;
-  byte bar = TIME_TO_PIXELS(delta);
+  byte bar = time_to_pixels(delta);
   if (bar < 0) bar = 0;
 
   if (delta > ERROR_TIME)
